@@ -1,5 +1,6 @@
 package miniproject.onlinebookstore.entity;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -9,6 +10,7 @@ import lombok.*;
 @Setter
 @Getter
 @ToString
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Book {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
