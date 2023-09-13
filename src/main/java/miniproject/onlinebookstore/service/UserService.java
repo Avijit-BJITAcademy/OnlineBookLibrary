@@ -9,6 +9,7 @@ import miniproject.onlinebookstore.exception.IdNotFoundException;
 import miniproject.onlinebookstore.repository.UserHistoryRepository;
 import miniproject.onlinebookstore.repository.UserRepository;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -17,18 +18,20 @@ import java.util.List;
 @Service
 public class UserService {
     private final UserRepository repository;
-
+    private final PasswordEncoder passwordEncoder;
     private final UserHistoryRepository userHistoryRepository;
     private final ModelMapper modelMapper;
 
-    public UserService(UserRepository repository, UserHistoryRepository userHistoryRepository, ModelMapper modelMapper) {
+    public UserService(UserRepository repository, PasswordEncoder passwordEncoder, UserHistoryRepository userHistoryRepository, ModelMapper modelMapper) {
         this.repository = repository;
+        this.passwordEncoder = passwordEncoder;
         this.userHistoryRepository = userHistoryRepository;
         this.modelMapper = modelMapper;
     }
 
     public UserDto createUser (User user){
         user.setRole(Role.CUSTOMER);
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         User createdUser = repository.save(user);
         return modelMapper.map(createdUser, UserDto.class);
     }

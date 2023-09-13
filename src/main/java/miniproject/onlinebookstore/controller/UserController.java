@@ -1,21 +1,32 @@
 package miniproject.onlinebookstore.controller;
 
+import miniproject.onlinebookstore.dto.AuthRequest;
 import miniproject.onlinebookstore.entity.User;
 import miniproject.onlinebookstore.exception.IdNotFoundException;
 import miniproject.onlinebookstore.service.BookOperationService;
+import miniproject.onlinebookstore.service.JwtService;
 import miniproject.onlinebookstore.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class UserController {
     private final UserService service;
     private final BookOperationService bookOperationService;
+    private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
 
-    public UserController(UserService service, BookOperationService bookOperationService) {
+    public UserController(UserService service, BookOperationService bookOperationService, AuthenticationManager authenticationManager, JwtService jwtService) {
         this.service = service;
         this.bookOperationService = bookOperationService;
+        this.authenticationManager = authenticationManager;
+        this.jwtService = jwtService;
     }
 
     @PostMapping("user/register")
@@ -23,6 +34,7 @@ public class UserController {
         return new ResponseEntity<>(service.createUser(user), HttpStatus.CREATED);
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @GetMapping("users/{userId}")
     public ResponseEntity<?> getById (@PathVariable Long userId) throws IdNotFoundException {
         return ResponseEntity.ok(service.getUser(userId));
@@ -41,6 +53,18 @@ public class UserController {
     @GetMapping("users/{userId}/borrowed-book")
     public ResponseEntity<?> getCurrentlyBorrowedBooksByUser (@PathVariable Long userId){
         return new ResponseEntity<>(service.getCurrentlyBorrowedBooksByUser(userId), HttpStatus.OK);
+    }
+    @PostMapping("user/login")
+    public String authenticateAndGetToken(@RequestBody AuthRequest authRequest) {
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        authRequest.getEmail(),
+                        authRequest.getPassword()));
+        if (authentication.isAuthenticated()) {
+            return jwtService.generateToken(authRequest.getEmail());
+        } else {
+            throw new UsernameNotFoundException("invalid email/password!");
+        }
     }
 
 }
