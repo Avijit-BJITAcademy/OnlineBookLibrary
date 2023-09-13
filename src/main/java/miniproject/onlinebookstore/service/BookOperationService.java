@@ -55,7 +55,7 @@ public class BookOperationService {
         Book book = bookRepository.findById(bookId).orElseThrow(()->new IdNotFoundException("Book not found"));
         UserHistory userHistory = null;
         if (book.getStatus()==BookStatus.BORROWED){
-            userHistory = userHistoryRepository.findCurrentlyBorrowedHistory(bookId).get(0);
+            userHistory = userHistoryRepository.findCurrentlyBorrowedHistory(bookId);
             userHistory.setIsCurrentlyBorrowed(IsCurrentlyBorrowed.NO);
             userHistory.getBook().setStatus(BookStatus.AVAILABLE);
             userHistory = userHistoryRepository.save(userHistory);
@@ -79,7 +79,11 @@ public class BookOperationService {
                     if (pastReservation.getIsReserved() == IsReserved.YES){
                         throw new NoReservationException("Already reserved");
                     }
+                    if(userId.equals(userHistoryRepository.findCurrentlyBorrowedHistory(bookId).getUser().getId())){
+                        throw new NoReservationException("You have already borrowed this book");
+                    }
                 }
+
                 reservation.setIsReserved(IsReserved.YES);
                 reservation.setUser(userRepository.findById(userId).get());
                 reservation.setBook(book);
