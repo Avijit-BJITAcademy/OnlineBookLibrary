@@ -69,5 +69,19 @@ public class BookController {
     public ResponseEntity<?> createReview (@RequestBody BookReviewDto bookReviewDto, @PathVariable Long bookId) throws BookNotAvailableException, IdNotFoundException {
         return new ResponseEntity<>(bookReviewService.createReview(bookId, bookReviewDto), HttpStatus.CREATED);
     }
+    @GetMapping("{bookId}/reviews")
+    public ResponseEntity<?> getAllReviewByBookId(@PathVariable Long bookId) throws BookNotAvailableException {
+        return ResponseEntity.ok(bookReviewService.getAll(bookId));
+    }
+
+    @PutMapping("{bookId}/reviews/{reviewId}/update")
+    public ResponseEntity<?> updateReview (@PathVariable Long bookId, @PathVariable Long reviewId, @RequestBody BookReviewDto reviewDto) throws IdNotFoundException {
+        return ResponseEntity.ok(bookReviewService.update(bookId, reviewId, reviewDto));
+    }
+
+    @DeleteMapping("{bookId}/reviews/{reviewId}/delete")
+    public ResponseEntity<?> deleteReview (@PathVariable Long bookId, @PathVariable Long reviewId) throws IdNotFoundException {
+        return new ResponseEntity<>(bookReviewService.delete(reviewId), HttpStatus.OK);
+    }
 
 }

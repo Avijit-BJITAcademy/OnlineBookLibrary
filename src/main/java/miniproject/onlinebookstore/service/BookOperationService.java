@@ -1,5 +1,7 @@
 package miniproject.onlinebookstore.service;
 
+import miniproject.onlinebookstore.dto.HistoryResponse;
+import miniproject.onlinebookstore.dto.UserDto;
 import miniproject.onlinebookstore.entity.*;
 import miniproject.onlinebookstore.exception.BookNotAvailableException;
 import miniproject.onlinebookstore.exception.IdNotFoundException;
@@ -7,9 +9,11 @@ import miniproject.onlinebookstore.exception.NoReservationException;
 import miniproject.onlinebookstore.repository.BookRepository;
 import miniproject.onlinebookstore.repository.UserHistoryRepository;
 import miniproject.onlinebookstore.repository.UserRepository;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -17,14 +21,15 @@ public class BookOperationService {
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
     private final UserHistoryRepository userHistoryRepository;
-
+    private final ModelMapper modelMapper;
 
     public BookOperationService(BookRepository bookRepository,
                                 UserRepository userRepository,
-                                UserHistoryRepository userHistoryRepository) {
+                                UserHistoryRepository userHistoryRepository, ModelMapper modelMapper) {
         this.bookRepository = bookRepository;
         this.userRepository = userRepository;
         this.userHistoryRepository = userHistoryRepository;
+        this.modelMapper = modelMapper;
     }
 
     public UserHistory borrowBook(Long bookId, Long userId) throws IdNotFoundException, BookNotAvailableException {
@@ -114,4 +119,14 @@ public class BookOperationService {
         return cancelReservation;
     }
 
+
+    public List<HistoryResponse> getHistoryByUserId(Long userId) {
+        List<HistoryResponse> historyResponses = new ArrayList<>();
+        for (UserHistory userHistory : userHistoryRepository.findByUserId(userId)){
+            HistoryResponse historyResponse = modelMapper.map(userHistory, HistoryResponse.class);
+            historyResponse.setUserDto(modelMapper.map(userHistory.getUser(), UserDto.class));
+            historyResponses.add(historyResponse);
+        }
+        return historyResponses;
+    }
 }
