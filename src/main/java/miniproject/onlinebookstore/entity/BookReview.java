@@ -13,7 +13,8 @@ public class BookReview {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String comment;
+
+    private String reviewText;
     private int rating;
 
     @ManyToOne
