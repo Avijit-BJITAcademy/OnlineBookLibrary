@@ -5,10 +5,12 @@ import miniproject.onlinebookstore.dto.UserDto;
 import miniproject.onlinebookstore.entity.Role;
 import miniproject.onlinebookstore.entity.User;
 import miniproject.onlinebookstore.entity.UserHistory;
+import miniproject.onlinebookstore.exception.CustomException;
 import miniproject.onlinebookstore.exception.IdNotFoundException;
 import miniproject.onlinebookstore.repository.UserHistoryRepository;
 import miniproject.onlinebookstore.repository.UserRepository;
 import org.modelmapper.ModelMapper;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -29,10 +31,15 @@ public class UserService {
         this.modelMapper = modelMapper;
     }
 
-    public UserDto createUser (User user){
-        user.setRole(Role.CUSTOMER);
+    public UserDto createUser (User user) throws CustomException {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        User createdUser = repository.save(user);
+        User createdUser;
+        try {
+            createdUser = repository.save(user);
+        }catch (DataIntegrityViolationException ex){
+            createdUser=null;
+            throw new CustomException("Email is already associated. Try with different one.");
+        }
         return modelMapper.map(createdUser, UserDto.class);
     }
 

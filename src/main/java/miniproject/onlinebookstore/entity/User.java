@@ -3,6 +3,7 @@ package miniproject.onlinebookstore.entity;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.validator.constraints.UniqueElements;
 
 @Entity
 @AllArgsConstructor
@@ -17,6 +18,7 @@ public class User {
     private Long id;
     private String firstName;
     private String lastName;
+    @Column(nullable = false, unique = true)
     private String email;
     private String password;
     private String address;

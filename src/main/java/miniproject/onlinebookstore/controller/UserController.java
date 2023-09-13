@@ -1,7 +1,9 @@
 package miniproject.onlinebookstore.controller;
 
 import miniproject.onlinebookstore.dto.AuthRequest;
+import miniproject.onlinebookstore.dto.TokenResponse;
 import miniproject.onlinebookstore.entity.User;
+import miniproject.onlinebookstore.exception.CustomException;
 import miniproject.onlinebookstore.exception.IdNotFoundException;
 import miniproject.onlinebookstore.service.BookOperationService;
 import miniproject.onlinebookstore.service.JwtService;
@@ -30,7 +32,7 @@ public class UserController {
     }
 
     @PostMapping("user/register")
-    public ResponseEntity<?> register (@RequestBody User user){
+    public ResponseEntity<?> register (@RequestBody User user) throws CustomException {
         return new ResponseEntity<>(service.createUser(user), HttpStatus.CREATED);
     }
 
@@ -40,28 +42,31 @@ public class UserController {
         return ResponseEntity.ok(service.getUser(userId));
     }
 
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN, ROLE_CUSTOMER')")
     @GetMapping("users/{userId}/history")
     public ResponseEntity<?> getUserHistory(@PathVariable Long userId){
         return ResponseEntity.ok(bookOperationService.getHistoryByUserId(userId));
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @GetMapping("users/{userId}/books")
     public ResponseEntity<?> getBooksByUser (@PathVariable Long userId){
         return new ResponseEntity<>(service.getPreviouslyBorrowedBooksByUser(userId), HttpStatus.OK);
     }
 
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @GetMapping("users/{userId}/borrowed-book")
     public ResponseEntity<?> getCurrentlyBorrowedBooksByUser (@PathVariable Long userId){
         return new ResponseEntity<>(service.getCurrentlyBorrowedBooksByUser(userId), HttpStatus.OK);
     }
     @PostMapping("user/login")
-    public String authenticateAndGetToken(@RequestBody AuthRequest authRequest) {
+    public ResponseEntity<TokenResponse> authenticateAndGetToken(@RequestBody AuthRequest authRequest) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         authRequest.getEmail(),
                         authRequest.getPassword()));
         if (authentication.isAuthenticated()) {
-            return jwtService.generateToken(authRequest.getEmail());
+            return new ResponseEntity<>(new TokenResponse(jwtService.generateToken(authRequest.getEmail())),HttpStatus.ACCEPTED);
         } else {
             throw new UsernameNotFoundException("invalid email/password!");
         }

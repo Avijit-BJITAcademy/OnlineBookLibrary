@@ -48,11 +48,13 @@ public class SecurityConfig {
                         "user/login",
                         "user/register"
                 ).permitAll()
-                .and()
-                .authorizeHttpRequests().requestMatchers(
-                        "/books/**",
-                        "/users/**"
-                )
+
+//                .authorizeHttpRequests()
+//                .requestMatchers(
+//                        "/books/**",
+//                        "/users/**"
+//                )
+                .anyRequest()
                 .authenticated().and()
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)

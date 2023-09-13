@@ -1,6 +1,9 @@
 package miniproject.onlinebookstore.dto;
 
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.*;
+import miniproject.onlinebookstore.entity.Role;
 
 @Setter
 @Getter
@@ -17,4 +20,6 @@ public class UserDto {
     private String email;
     @NonNull
     private String address;
+
+    private Role role;
 }
